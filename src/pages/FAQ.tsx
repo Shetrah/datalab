@@ -1,0 +1,7 @@
+import { ArrowRight,ChevronDown } from 'lucide-react';
+import { PageIntro,SectionHeading } from '../components/BrandLayout';
+import { Link,useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { faqs } from '../content/siteContent';
+
+export default function FAQ(){const [active,setActive]=useState<number|null>(0);return <><PageIntro eyebrow="Questions & answers" title="A few things you may want to know." lead="If your question isn't covered here, contact us and tell us a little about your project."/><section className="section"><div className="container faq-layout"><div><SectionHeading kicker="Frequently asked questions" title="Clear answers before you begin." body="We want you to understand what the process involves, how we work and what to expect."/><Link to="/contact" className="btn btn-primary">Ask us a question <ArrowRight size={16}/></Link></div><div className="accordion">{faqs.map(([q,a],i)=><div className={`faq-item ${active===i?'expanded':''}`} key={q}><button onClick={()=>setActive(active===i?null:i)} aria-expanded={active===i}><span>{q}</span><ChevronDown size={19}/></button>{active===i&&<p>{a}</p>}</div>)}</div></div></section><script type="application/ld+json">{JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":faqs.map(([q,a])=>({"@type":"Question",name:q,acceptedAnswer:{"@type":"Answer",text:a}}))})}</script></>}

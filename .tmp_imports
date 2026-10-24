@@ -1,0 +1,7 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, BookOpen, CheckCircle2, Database, LineChart, Network, ShieldCheck } from 'lucide-react';
+import { getPublicSiteContent } from '../lib/supabase';
+import { serviceData } from '../content/siteContent';
+import { SectionHeading, ServiceCard } from '../components/BrandLayout';
+import ResearchJourney from '../components/ResearchJourney';
