@@ -14,10 +14,12 @@ import Blog from './pages/Blog';
 import BlogPostRoute from './pages/BlogPostRoute';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
+import SubmitProject from './pages/SubmitProject';
 import TrackProject from './pages/TrackProject';
 import Legal from './pages/Legal';
 import NotFound from './pages/NotFound';
 import Admin from './pages/Admin';
+import AdminProjectDetail from './pages/AdminProjectDetail';
 
 export default function App() {
   const location = useLocation();
@@ -42,7 +44,10 @@ export default function App() {
     meta.setAttribute('content', descriptions[location.pathname] || 'Practical research consulting, data analysis and actionable insights from Datalab Research Consulting.');
   }, [location.pathname, pageTitle]);
 
-  if (isAdmin) return <Routes><Route path="/admin" element={<Admin />} /></Routes>;
+  if (isAdmin) return <Routes>
+    <Route path="/admin" element={<Admin />} />
+    <Route path="/admin/project/:id" element={<AdminProjectDetail />} />
+  </Routes>;
 
   return <>
     <ScrollTop />
@@ -60,6 +65,7 @@ export default function App() {
       <Route path="/blog/:id" element={<BlogPostRoute />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/submit-project" element={<SubmitProject />} />
       <Route path="/track" element={<TrackProject />} />
       <Route path="/privacy-policy" element={<Legal kind="privacy-policy" />} />
       <Route path="/terms-and-conditions" element={<Legal kind="terms-and-conditions" />} />

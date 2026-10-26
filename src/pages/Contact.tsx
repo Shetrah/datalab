@@ -1,14 +1,160 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, FileText, MessageCircle, Target } from 'lucide-react';
 import { PageIntro } from '../components/BrandLayout';
-import { email, phone, phoneDigits, serviceData } from '../content/siteContent';
-import { getPublicSiteContent, submitEnquiry, supabaseConfigured } from '../lib/supabase';
+import { email, phone, phoneDigits } from '../content/siteContent';
+import { submitContact, supabaseConfigured } from '../lib/supabase';
+
 export default function Contact() {
- const [sent,setSent]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
- const [copy,setCopy]=useState({intro:"Share what you are working on and what you need to understand. We'll use your brief to plan a practical next step.",consultationLabel:'Book a consultation'});
- const selectedService=new URLSearchParams(window.location.search).get('service')||'';
- useEffect(()=>{getPublicSiteContent('contact').then(saved=>saved&&setCopy(current=>({...current,...saved})))},[]);
- async function handleSubmit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setError('');const form=e.currentTarget,data=new FormData(form);if(!supabaseConfigured){const body=Array.from(data.entries()).map(([k,v])=>`${k}: ${v}`).join('\n');window.location.href=`mailto:${email}?subject=${encodeURIComponent('Datalab website enquiry')}&body=${encodeURIComponent(body)}`;setSent(true);return}setBusy(true);try{await submitEnquiry({full_name:String(data.get('full_name')),email:String(data.get('email')).trim().toLowerCase(),phone:String(data.get('phone')||'')||null,client_category:String(data.get('client_category')),organisation:String(data.get('organisation')||'')||null,service:String(data.get('service')),project_title:String(data.get('project_title')),details:String(data.get('details')),deliverables:String(data.get('deliverables')||'')||null,deadline:String(data.get('deadline')||'')||null,budget:String(data.get('budget')),preferred_contact:String(data.get('preferred_contact'))});setSent(true);form.reset()}catch{setError('We could not save your enquiry. Please try again or email us directly.')}finally{setBusy(false)}}
- return <><PageIntro eyebrow="Contact Datalab" title="Let's talk about your research." lead={copy.intro}/><section className="section"><div className="container contact-layout"><div className="contact-info"><span className="eyebrow"><span/>START A CONVERSATION</span><h2>Tell us a little about your project.</h2><p>It's okay if your idea is still taking shape. A short overview is enough to begin.</p><div className="contact-method"><span><MessageCircle/></span><div><b>WhatsApp</b><a href={`https://wa.me/${phoneDigits}`} target="_blank" rel="noreferrer">{phone} <ArrowUpRight size={14}/></a></div></div><div className="contact-method"><span><FileText/></span><div><b>Email</b><a href={`mailto:${email}`}>{email}</a><small>Direct email for project enquiries.</small></div></div><div className="contact-method"><span><Target/></span><div><b>Location</b><p>Nairobi, Kenya</p><small>Exact address / service area to confirm.</small></div></div></div><form className="contact-form" onSubmit={handleSubmit}><h2>Project enquiry</h2><p>Fields marked * are required. No account needed.</p>{sent&&<div className="success-msg" role="status">{supabaseConfigured?'Enquiry received. The Datalab team can follow up.':'Demo only: Supabase is not configured, so no enquiry was saved. Please email or message us directly.'}</div>}{error&&<div className="error-msg" role="alert">{error}</div>}<div className="form-grid"><label>Full name *<input name="full_name" required autoComplete="name"/></label><label>Email address *<input type="email" name="email" required autoComplete="email"/></label><label>Phone / WhatsApp<input name="phone" autoComplete="tel"/></label><label>Client type *<select name="client_category" required defaultValue="Academic"><option>Academic</option><option>Organisation</option><option>Other</option></select></label><label>Organisation / university<input name="organisation"/></label><label>Service interested in *<select name="service" required defaultValue={selectedService}><option value="" disabled>Select a service</option>{serviceData.map(s=><option key={s.slug}>{s.title}</option>)}<option>Not sure yet</option></select></label><label className="full-field">Project title *<input name="project_title" required/></label><label className="full-field">Research problem and requested support *<textarea name="details" required rows={4}/></label><label className="full-field">Expected deliverables<input name="deliverables"/></label><label>Preferred deadline<input type="date" name="deadline"/></label><label>Estimated budget *<select name="budget" required defaultValue="Unsure"><option>Unsure</option><option>Under KES 25,000</option><option>KES 25,000–75,000</option><option>KES 75,000–150,000</option><option>Above KES 150,000</option></select></label><label className="full-field">Preferred contact method<select name="preferred_contact" defaultValue="Email"><option>Email</option><option>WhatsApp</option><option>Phone call</option></select></label><label className="consent full-field"><input type="checkbox" required name="privacy_acknowledged"/> I agree Datalab may use these details to respond. Please do not submit confidential research data.</label></div><button className="btn btn-primary full-btn" disabled={busy}>{busy?'Sending…':supabaseConfigured?'Send project enquiry':'Prepare enquiry email'} <ArrowRight size={17}/></button><small className="muted">{supabaseConfigured?'The enquiry will be saved to the project intake database.':'Demo mode: configure Supabase to enable online enquiry storage.'}</small><Link to="/track" className="text-link">Already a client? Track a project</Link></form></div></section></>;
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError('');
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    if (!supabaseConfigured) {
+      const body = Array.from(data.entries()).map(([k, v]) => `${k}: ${v}`).join('\n');
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent('Datalab Contact Message')}&body=${encodeURIComponent(body)}`;
+      setSent(true);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await submitContact({
+        full_name: String(data.get('full_name')),
+        email: String(data.get('email')).trim().toLowerCase(),
+        phone: String(data.get('phone') || '') || undefined,
+        subject: String(data.get('subject') || '') || undefined,
+        message: String(data.get('message')),
+        contact_reason: String(data.get('contact_reason')) || undefined
+      });
+      setSent(true);
+      form.reset();
+    } catch {
+      setError('We could not save your message. Please try again or email us directly.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <PageIntro 
+        eyebrow="Contact Datalab" 
+        title="Get in touch with us" 
+        lead="Whether you have a question, feedback, or want to explore partnership opportunities, we're here to help."
+      />
+      
+      <section className="section">
+        <div className="container contact-layout">
+          <div className="contact-info">
+            <span className="eyebrow"><span/>REACH OUT TO US</span>
+            <h2>We'd love to hear from you</h2>
+            <p>Have a question about our services? Need support? Want to discuss a partnership? Use the form or reach out directly.</p>
+
+            <div className="contact-method">
+              <span><MessageCircle/></span>
+              <div>
+                <b>WhatsApp</b>
+                <a href={`https://wa.me/${phoneDigits}`} target="_blank" rel="noreferrer">
+                  {phone} <ArrowUpRight size={14}/>
+                </a>
+              </div>
+            </div>
+
+            <div className="contact-method">
+              <span><FileText/></span>
+              <div>
+                <b>Email</b>
+                <a href={`mailto:${email}`}>{email}</a>
+                <small>For general inquiries and support</small>
+              </div>
+            </div>
+
+            <div className="contact-method">
+              <span><Target/></span>
+              <div>
+                <b>Location</b>
+                <p>View Park Towers, Suite 1605<br/>Utalii Lane, Nairobi, Kenya</p>
+              </div>
+            </div>
+
+            <div className="contact-cta">
+              <h3>Ready to start a project?</h3>
+              <p>For research and data consulting projects, use our dedicated submission form.</p>
+              <Link to="/submit-project" className="btn btn-primary">
+                Submit a Project <ArrowRight size={16}/>
+              </Link>
+            </div>
+          </div>
+
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <h2>Contact Form</h2>
+            <p>Fields marked * are required. We'll respond within 1-2 business days.</p>
+
+            {sent && (
+              <div className="success-msg" role="status">
+                Message sent! We'll get back to you soon.
+              </div>
+            )}
+
+            {error && <div className="error-msg" role="alert">{error}</div>}
+
+            <div className="form-grid">
+              <label>
+                Full name *
+                <input name="full_name" required autoComplete="name"/>
+              </label>
+              <label>
+                Email address *
+                <input type="email" name="email" required autoComplete="email"/>
+              </label>
+              <label>
+                Phone / WhatsApp
+                <input name="phone" autoComplete="tel"/>
+              </label>
+              <label>
+                Reason for contact
+                <select name="contact_reason" defaultValue="General Inquiry">
+                  <option>General Inquiry</option>
+                  <option>Partnership</option>
+                  <option>Feedback</option>
+                  <option>Support</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label className="full-field">
+                Subject
+                <input name="subject" placeholder="Brief subject line"/>
+              </label>
+              <label className="full-field">
+                Your message *
+                <textarea 
+                  name="message" 
+                  required 
+                  rows={6}
+                  placeholder="Tell us how we can help..."
+                />
+              </label>
+            </div>
+
+            <button className="btn btn-primary full-btn" disabled={busy}>
+              {busy ? 'Sending...' : 'Send Message'} <ArrowRight size={17}/>
+            </button>
+
+            <small className="muted">
+              {supabaseConfigured 
+                ? 'Your message will be saved securely and our team will respond promptly.'
+                : 'Contact form is in setup mode. Use email or WhatsApp for immediate response.'}
+            </small>
+          </form>
+        </div>
+      </section>
+    </>
+  );
 }
